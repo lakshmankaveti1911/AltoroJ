@@ -46,6 +46,7 @@ public class FeedbackServlet extends HttpServlet {
 			return;
 		}
 
+		//TODO:refactor this part
 		String name = request.getParameter("name");
 		if (name != null){
 			request.setAttribute("message_feedback", name);
