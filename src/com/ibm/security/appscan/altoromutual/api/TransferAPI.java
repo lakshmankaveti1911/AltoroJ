@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.wink.json4j.*;
@@ -16,16 +17,10 @@ public class TransferAPI extends AltoroAPI {
 	@POST
 	public Response trasnfer(String bodyJSON,
 			@Context HttpServletRequest request) {
-
-		
-		/*if (!ServletUtil.isLoggedin(request)) {
-			response = "{\"loggedIn\" : \"false\"}";
-			return Response.status(400).entity(response).build();
-		}*/
 		
 		JSONObject myJson = new JSONObject();
 		Long creditActId;
-		String fromAccount;
+		Long fromAccount;
 		double amount;
 		String message;
 		
@@ -33,22 +28,17 @@ public class TransferAPI extends AltoroAPI {
 			myJson =new JSONObject(bodyJSON);
 			//Get the transaction parameters
 			creditActId = Long.parseLong(myJson.get("toAccount").toString());
-			fromAccount = myJson.get("fromAccount").toString();
+			fromAccount = Long.parseLong(myJson.get("fromAccount").toString());
 			amount = Double.parseDouble(myJson.get("transferAmount").toString());
-			message = OperationsUtil.doTransfer(request,creditActId,fromAccount,amount);
+			message = OperationsUtil.doApiTransfer(request,creditActId,fromAccount,amount);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return Response.status(500).entity("{\"Error\": \"Request is not in JSON format\"}").build();
+			return Response.status(Response.Status.BAD_REQUEST).entity("An error has occurred: " + e.getLocalizedMessage()).build();
 		}
-
-		
-		
-		
+			
 		if(message.startsWith("ERROR")){
-			return Response.status(500).entity("\"error\":\"" + message+"\"}").build();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("\"error\":\"" + message+"\"}").build();
 		}
 		
-		return Response.status(200).entity("{\"success\":\""+message+"\"}").build();
+		return Response.status(Response.Status.OK).entity("{\"success\":\""+message+"\"}").type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
 }

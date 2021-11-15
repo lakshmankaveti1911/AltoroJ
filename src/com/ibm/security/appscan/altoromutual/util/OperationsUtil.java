@@ -107,5 +107,15 @@ public class OperationsUtil {
 
 		return null;
 	}
+
+	public static Object getUser(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static String doApiTransfer(HttpServletRequest request, Long creditActId, Long fromAccount, double amount) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
  }

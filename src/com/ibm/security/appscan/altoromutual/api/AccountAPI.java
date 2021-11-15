@@ -3,24 +3,22 @@ package com.ibm.security.appscan.altoromutual.api;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-
 import com.ibm.security.appscan.altoromutual.model.Account;
 import com.ibm.security.appscan.altoromutual.model.Transaction;
 import com.ibm.security.appscan.altoromutual.model.User;
 import com.ibm.security.appscan.altoromutual.util.DBUtil;
-import com.ibm.security.appscan.altoromutual.util.ServletUtil;
+import com.ibm.security.appscan.altoromutual.util.OperationsUtil;
+
 
 @Path("/account")
 public class AccountAPI extends AltoroAPI {
@@ -31,14 +29,10 @@ public class AccountAPI extends AltoroAPI {
 
 		// HttpSession session = request.getSession(true);
 		String response;
-
-		if (!ServletUtil.isLoggedin(request)) {
-			response = "{\"loggedIn\" : \"false\"}";
-			return Response.status(401).entity(response).build();
-		}
-
+	
+		
 		try {
-			Account[] account = (ServletUtil.getUser(request)).getAccounts();
+			Account[] account = ((User) OperationsUtil.getUser(request)).getAccounts();
 			// System.out.println("We got so far!");
 			response = "{\"Accounts\":\n[\n";
 			for (int i = 0; i < account.length; i++) {
@@ -50,11 +44,10 @@ public class AccountAPI extends AltoroAPI {
 			response = response + "\n]}";
 
 		} catch (Exception e) {
-			response = "{\"Error\": \"Unknown error encountered\"}";
-			return Response.status(501).entity(response).build();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error: " + e.getLocalizedMessage()).build();
 		}
 
-		return Response.status(200).entity(response).build();
+		return Response.status(Response.Status.OK).entity(response).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
 
 	// Method to return details about a specific account
@@ -66,11 +59,6 @@ public class AccountAPI extends AltoroAPI {
 		// Check that the user is logged in
 		// System.out.println(accountNo);
 		String response;
-
-		if (!ServletUtil.isLoggedin(request)) {
-			return Response.status(401).entity("{\"loggedIn\" : \"false\"}")
-					.build();
-		}
 
 		// not checking the account number, side privilege escalation possible
 		try {
@@ -84,8 +72,8 @@ public class AccountAPI extends AltoroAPI {
 			// return Response.status(200).entity(balance).build();
 		} catch (Exception e) {
 			return Response
-					.status(500)
-					.entity("{Error : Unknown error occured during balance interogation}")
+					.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("{Error : " + e.getLocalizedMessage())
 					.build();
 		}
 
@@ -94,8 +82,8 @@ public class AccountAPI extends AltoroAPI {
 		last10Transactions = this.getLastTenTransactions(accountNo);
 		if (last10Transactions.equals("Error")) {
 			return Response
-					.status(500)
-					.entity("{Error : Unexpected error during transfer interogation}")
+					.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("{Error : Unexpected error during transfer}")
 					.build();
 		}
 		response = response + last10Transactions;
@@ -109,12 +97,10 @@ public class AccountAPI extends AltoroAPI {
 					+ "\"debits\":[{\"account\":\"1001160140\", \"date\":\"2005-01-17\", \"description\": \"Withdrawal\" , \"amount\":\"2.85\"},{\"account\":\"1001160140\", \"date\":\"2005-01-25\", \"description\": \"Rent\" , \"amount\":\"800\"},{\"account\":\"1001160140\", \"date\":\"2005-01-27\", \"description\": \"Electric Bill\" , \"amount\":\"45.25\"},{\"account\":\"1001160140\", \"date\":\"2005-01-28\", \"description\": \"Heating\" , \"amount\":\"29.99\"},{\"account\":\"1001160140\", \"date\":\"2005-01-29\", \"description\": \"Transfer to Savings\" , \"amount\":\"321\"},{\"account\":\"1001160140\", \"date\":\"2005-01-29\", \"description\": \"Groceries\" , \"amount\":\"19.6\"}]}";
 			myJson =new JSONObject(response);
 			myJson.put("accountId", accountNo);
-			return Response.status(200).entity(myJson.toString()).build();
+			return Response.status(Response.Status.OK).entity(myJson.toString()).type(MediaType.APPLICATION_JSON_TYPE).build();
 		}catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An error has occurred: " + e.getLocalizedMessage()).build();
 		}
-		return Response.status(200).entity("Standard" + response).build();
 	}
 
 	// Methods for getting the transactions
@@ -127,19 +113,14 @@ public class AccountAPI extends AltoroAPI {
 			@Context HttpServletRequest request) {
 		String response;
 
-		if (!ServletUtil.isLoggedin(request)) {
-			return Response.status(401).entity("{\"loggedIn\" : \"false\"}")
-					.build();
-		}
-
 		response = "{";
 		// Get the last 10 transactions
 		String last10Transactions;
 		last10Transactions = this.getLastTenTransactions(accountNo);
 		if (last10Transactions.equals("Error")) {
 			return Response
-					.status(500)
-					.entity("{Error : Unexpected error during transfer interogation}")
+					.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("{Error : Unexpected error during transfer}")
 					.build();
 		}
 		response = response + last10Transactions;
@@ -148,11 +129,11 @@ public class AccountAPI extends AltoroAPI {
 		try {
 			JSONObject myJson = new JSONObject();
 			myJson =new JSONObject(response);
-			return Response.status(200).entity(myJson.toString()).build();
+			return Response.status(Response.Status.OK).entity(myJson.toString()).type(MediaType.APPLICATION_JSON_TYPE).build();
 		} catch (JSONException e) {
 			return Response
-					.status(200)
-					.entity("{ \"Error\" : \"Unexpected error occured retrieving transactions.\"}")
+					.status(Response.Status.OK)
+					.entity("{ \"Error\" : \"Unexpected error occured retrieving transactions.\"} " + e.getLocalizedMessage())
 					.build();
 		}
 	}
@@ -161,13 +142,13 @@ public class AccountAPI extends AltoroAPI {
 	@POST
 	@Path("/{accountNo}/transactions")
 	public Response getTransactions(@PathParam("accountNo") String accountNo,
-			String bodyJSON, @Context HttpServletRequest request) {
+			String bodyJSON, @Context HttpServletRequest request) throws SQLException {
 
 		/*if (!this.loggedIn(request)) {
 			return Response.status(401).entity("{\"loggedIn\" : \"false\"}")
 					.build();
 		}*/
-		User user = ServletUtil.getUser(request);
+		User user = (User) OperationsUtil.getUser(request);
 		String startString;
 		String endString;
 		
@@ -177,8 +158,7 @@ public class AccountAPI extends AltoroAPI {
 			startString = (String) myJson.get("startDate");
 			endString = (String) myJson.get("endDate");
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			return Response.status(50)
+			return Response.status(Response.Status.BAD_REQUEST)
 					.entity("{Error : Unexpected request format}").build();
 		}
 
@@ -191,11 +171,8 @@ public class AccountAPI extends AltoroAPI {
 			transactions = user.getUserTransactions(startString, endString,
 					account);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			return Response
-					.status(50)
-					.entity("{Error : Database failed to return requested data}")
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("{Error : Database failed to return requested data} " + e.getLocalizedMessage())
 					.build();
 		}
 
@@ -223,15 +200,13 @@ public class AccountAPI extends AltoroAPI {
 
 		try {
 			myJson =new JSONObject(response);
+			return Response.status(Response.Status.OK).entity(myJson.toString()).type(MediaType.APPLICATION_JSON_TYPE).build();
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			return Response.status(200).entity("{\"error\" : \"" + e.getMessage() + "\"}\n").build();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An error has occurred: " + e.getLocalizedMessage()).build();
 		}
-		return Response.status(200).entity(myJson.toString()).build();
 	}
 
 	// utilities for the API
-
 	private String getLastTenTransactions(String accountNo) {
 		String response = "";
 		try {
@@ -252,7 +227,7 @@ public class AccountAPI extends AltoroAPI {
 			}
 			response = response + "],\n";
 		} catch (Exception e) {
-			return "Error";
+			return "Error: " + e.getLocalizedMessage();
 		}
 
 		return response;
