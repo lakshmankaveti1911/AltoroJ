@@ -107,5 +107,15 @@ public class OperationsUtil {
 
 		return null;
 	}
+
+
+
+	public static User getUser(HttpServletRequest request) {
+		User user = ServletUtil.getUser(request);
+		return user ;
+	}
+
+
+	
 	
  }
