@@ -18,6 +18,7 @@ import com.ibm.security.appscan.altoromutual.model.Transaction;
 import com.ibm.security.appscan.altoromutual.model.User;
 import com.ibm.security.appscan.altoromutual.util.DBUtil;
 import com.ibm.security.appscan.altoromutual.util.OperationsUtil;
+import com.ibm.security.appscan.altoromutual.util.ServletUtil;
 
 
 @Path("/account")
@@ -32,7 +33,7 @@ public class AccountAPI extends AltoroAPI {
 	
 		
 		try {
-			Account[] account = ((User) OperationsUtil.getUser(request)).getAccounts();
+			Account[] account = (ServletUtil.getUser(request)).getAccounts();
 			// System.out.println("We got so far!");
 			response = "{\"Accounts\":\n[\n";
 			for (int i = 0; i < account.length; i++) {
@@ -148,7 +149,7 @@ public class AccountAPI extends AltoroAPI {
 			return Response.status(401).entity("{\"loggedIn\" : \"false\"}")
 					.build();
 		}*/
-		User user = (User) OperationsUtil.getUser(request);
+		User user = ServletUtil.getUser(request);
 		String startString;
 		String endString;
 		
