@@ -1,42 +1,19 @@
 package com.ibm.security.appscan.altoromutual.util;
 
-import java.nio.charset.Charset;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Random;
-import java.util.StringTokenizer;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.codec.binary.Base64;
+
 import org.apache.commons.lang.StringEscapeUtils;
+
 import com.ibm.security.appscan.altoromutual.model.Account;
 import com.ibm.security.appscan.altoromutual.model.User;
 
 public class OperationsUtil {
 
-	public static String doApiTransfer(HttpServletRequest request, long creditActId, long debitActId,
-			double amount) {
-		
-		try {
-			User user = OperationsUtil.getUser(request);
-			String userName = user.getUsername();
-			String message = DBUtil.transferFunds(userName, creditActId, debitActId, amount);
-			if (message != null){
-				message = "ERROR: " + message;
-			} else {
-				message = amount + " was successfully transferred from Account " + debitActId + " into Account " + creditActId + " at " + new SimpleDateFormat().format(new Date()) + ".";
-			}
-			
-			return message;
-			
-		} catch (SQLException e) {
-			return "ERROR - failed to transfer funds: " + e.getLocalizedMessage();
-		}
-	}
-	
-	
-	public static String doServletTransfer(HttpServletRequest request, long creditActId, String accountIdString,
+	public static String doTransfer(HttpServletRequest request, long creditActId, String accountIdString,
 			double amount) {
 		
 		long debitActId = 0;
@@ -129,26 +106,5 @@ public class OperationsUtil {
 		}
 
 		return null;
-	}
-	
-	public static User getUser(HttpServletRequest request) throws SQLException{
-		
-		String accessToken = request.getHeader("Authorization").replaceAll("Bearer ", "");
-		
-		//Get username password and date 
-		String decodedToken = new String(Base64.decodeBase64(accessToken));
-		StringTokenizer tokenizer = new StringTokenizer(decodedToken,":");
-		String username = new String(Base64.decodeBase64(tokenizer.nextToken()));
-		return DBUtil.getUserInfo(username);
-		
-	}
-	
-	public static String makeRandomString() {
-	    byte[] array = new byte[7]; // length is bounded by 7
-	    new Random().nextBytes(array);
-	    String generatedString = new String(array, Charset.forName("UTF-8"));
-	 
-	    return generatedString;
-	}
-	
+	}	
  }

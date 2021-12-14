@@ -60,7 +60,7 @@ public class TransferServlet extends HttpServlet {
 		double amount = Double.valueOf(request.getParameter("transferAmount"));
 		
 		
-		String message = OperationsUtil.doServletTransfer(request,creditActId,accountIdString,amount);
+		String message = OperationsUtil.doTransfer(request,creditActId,accountIdString,amount);
 		
 		RequestDispatcher dispatcher = request.getRequestDispatcher("transfer.jsp");
 		request.setAttribute("message", message);

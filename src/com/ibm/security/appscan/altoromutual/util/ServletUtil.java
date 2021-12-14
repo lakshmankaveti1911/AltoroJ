@@ -19,13 +19,10 @@ IBM AltoroJ
 package com.ibm.security.appscan.altoromutual.util;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -40,7 +37,6 @@ import javax.servlet.http.HttpSession;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.wink.json4j.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -63,7 +59,6 @@ public class ServletUtil {
 
 	public static HashMap<String, String> demoProperties = null;
 	public static File logFile = null;
-	public static boolean swaggerInitialized = false;
 
 	public static final String ALTORO_COOKIE = "AltoroAccounts";
 
@@ -126,7 +121,6 @@ public class ServletUtil {
 									break;
 								}
 							} catch (Exception e) {
-								//do nothing
 							}
 						}
 					}
@@ -134,7 +128,8 @@ public class ServletUtil {
 			}
 
 		} catch (Exception e) {
-			//do nothing
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		if (results.size() == 0)
@@ -371,42 +366,62 @@ public class ServletUtil {
 		User user = (User)request.getSession().getAttribute(ServletUtil.SESSION_ATTR_USER);
 		return user;
 	}
-
-	/* initialize REST API properties */
-	static public void initializeRestAPI(ServletContext servletContext) {
-		if (swaggerInitialized)
-			return;
-
-		try {
-			//key describing base path of REST API
-			final String basePath = "basePath";
-			
-			//read in current properties file
-			InputStream swaggerInputStream = servletContext.getResourceAsStream("swagger/properties.json");
-			JSONObject swaggerProps = new JSONObject(swaggerInputStream);
-			String newBasePath = servletContext.getContextPath()+"/api";
-			
-			//no update needed
-			if (newBasePath.equals(swaggerProps.getString(basePath)))
-				return;
-			
-			//update base path and write it back out to the properties file
-			swaggerProps.remove(basePath);
-			swaggerProps.put(basePath, newBasePath);
-			BufferedWriter swaggerWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(servletContext.getRealPath("swagger/properties.json"))));
-			swaggerWriter.write(swaggerProps.toString());
-			swaggerWriter.close();
-		} catch (Exception e) {
-			Log4AltoroJ.getInstance().logError("Can't automatically initialize Swagger proerties.\n "
-												+ "Please set \"basePath\" property in /WebContent/swagger/properties.json file manually to match your context path with /api suffix\n"
-												+ "For example: /AltoroJ/api if AltoroJ index page is at http://appscanvm/AltoroJ/index.html /n"
-												+ "Error message: " + e.getMessage());
-//			e.printStackTrace();
-		}
-		
-		//parse swagger properties
-		swaggerInitialized = true;
+	
+	static public String addUnVulnerableName(String input)
+	{
+		String parameter1 = input;
+		parameter1 = parameter1.replaceAll(";", " ");
+		parameter1 = parameter1.replaceAll("&", "&amp;");
+		parameter1 = parameter1.replaceAll("<", "&lt;");
+		parameter1 = parameter1.replaceAll(">", "&gt;");
+		parameter1 = parameter1.replaceAll("\n", " ");
+		parameter1 = parameter1.replaceAll("//", " ");
+		return parameter1;
 	}
 	
+	static public String sanitizedAddUnVulnerableNameUnVulnerableLocation(String input)
+	{
+		String parameter2 = input;
+		parameter2 = parameter2.replaceAll("'", "&#39;");
+		parameter2 = parameter2.replaceAll("\"", "&quot;");
+		parameter2 = parameter2.replaceAll("&", "&amp;");
+		parameter2 = parameter2.replaceAll("<", "&lt;");
+		parameter2 = parameter2.replaceAll(">", "&gt;");
+		return parameter2;
+	}
+	
+	static public String badSanitizedAddUnVulnerableName(String input)
+	{
+		String parameter1 = input;
+		parameter1 = parameter1.replaceAll("&", "&amp;");
+		parameter1 = parameter1.replaceAll("<", "&lt;");
+		parameter1 = parameter1.replaceAll(">", "&gt;");
+		parameter1 = parameter1.replaceAll("\n", " ");
+		parameter1 = parameter1.replaceAll("//", " ");
+		return parameter1;
+	}
+	
+	static public String badSanitizedAddUnVulnerableNameUnVulnerableLocation(String input)
+	{
+		String parameter2 = input;
+		parameter2 = parameter2.replaceAll("'", "&#39;");
+		parameter2 = parameter2.replaceAll("\"", "&quot;");
+		parameter2 = parameter2.replaceAll("&", "&amp;");
+		return parameter2;
+	}
+	
+	static public String newSanitizedValue(String input)
+	{
+		String parameter = input;
+		parameter = parameter.replaceAll("&", "&amp;");
+		parameter = parameter.replaceAll("<", "&lt;");
+		parameter = parameter.replaceAll(">", "&gt;");
+		return parameter;
+	}
+
+	public static void initializeRestAPI(ServletContext servletContext) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }	
